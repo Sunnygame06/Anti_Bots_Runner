@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0612" />
+  <title>AntiBots Runner — Carrera Infinita</title>
+  <link rel="icon" type="image/png" href="./assets/antibots-runner-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
+    <div class="loading-panel">
+      <img class="loading-logo" src="./assets/antibots-loading-logo.png" alt="Logo del personaje AntiBots" />
+      <p class="loading-title">PREPARANDO LA PARTIDA</p>
+      <div class="loading-track" role="progressbar" aria-label="Carga del juego" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span class="loading-progress" id="loadingProgress"></span>
+      </div>
+      <p class="loading-status" id="loadingStatus">Cargando recursos... 0%</p>
+      <div class="loading-error hidden" id="loadingError">
+        <p>No se pudieron cargar los recursos del juego.</p>
+        <button class="primary" id="loadingRetry" type="button">REINTENTAR</button>
+      </div>
+    </div>
+  </div>
+  <main class="game-shell">
+    <section class="game-card">
+      <header class="game-topbar">
+        <div class="brand"><img class="brand-logo" src="./assets/antibots-runner-logo.png" alt="AntiBots Runner" /><h1>RUNNER</h1></div>
+        <div class="hud">
+          <div class="hud-stat"><small>PUNTOS</small><strong id="score">00000</strong></div>
+          <div class="hud-stat hi"><small>RÉCORD</small><strong id="highScore">00000</strong></div>
+          <button class="pause-btn" type="button" data-action="pause" aria-label="Pausar" title="Pausar">❚❚</button>
+          <button id="fsBtn" class="fs-btn" type="button" aria-pressed="false">⛶ Pantalla completa</button>
+        </div>
+      </header>
+
+      <div class="canvas-wrap">
+        <canvas id="game" width="1280" height="720" tabindex="0"></canvas>
+        <div class="overlay hidden" id="startOverlay">
+          <div class="overlay-panel start-panel">
+            <p class="kicker">ENDLESS RUNNER · 1 JUGADOR · 3 CARRILES</p>
+            <h2>Escoge tu <span class="accent">personaje</span></h2>
+            <p class="lead">La carrera no termina: esquiva obstáculos y recoge <strong>estrellas</strong> para lanzarlas automáticamente contra los enemigos. Elige cómo cambiar de carril y recoge corazones para recuperar vida.</p>
+            <div class="difficulty-select" role="group" aria-label="Dificultad">
+              <span>DIFICULTAD</span>
+              <button class="difficulty-btn" type="button" data-difficulty="easy">Fácil</button>
+              <button class="difficulty-btn selected" type="button" data-difficulty="medium">Medio</button>
+              <button class="difficulty-btn" type="button" data-difficulty="hard">Difícil</button>
+            </div>
+            <div class="control-select" role="group" aria-label="Teclas para cambiar de carril">
+              <span>MOVERSE CON</span>
+              <button class="control-btn selected" type="button" data-control="arrows" aria-pressed="true">↑ ↓ Flechas</button>
+              <button class="control-btn" type="button" data-control="ws" aria-pressed="false">W / S</button>
+            </div>
+            <div class="roster solo-roster" aria-label="Seleccionar personaje">
+              <article class="roster-card p1 selected-character" tabindex="0"><i class="avatar" style="--ax:0%;--ay:0%"></i><b>Real Anti</b><span>Seleccionar</span></article>
+              <article class="roster-card p2" tabindex="0"><i class="avatar" style="--ax:0%;--ay:28.571%"></i><b>Dread Done</b><span>Seleccionar</span></article>
+              <article class="roster-card p3" tabindex="0"><i class="avatar" style="--ax:0%;--ay:57.143%"></i><b>Baktunzilla</b><span>Seleccionar</span></article>
+              <article class="roster-card p4" tabindex="0"><i class="avatar" style="--ax:0%;--ay:85.714%"></i><b>The One "Shadowman"</b><span>Seleccionar</span></article>
+            </div>
+            <div class="start-actions">
+              <button id="startBtn" class="primary" type="button">▶ JUGAR</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay hidden" id="gameOverOverlay">
+          <div class="overlay-panel danger gameover-panel">
+            <p class="kicker">PARTIDA TERMINADA</p><h2>RESULTADOS</h2>
+            <div class="final-score"><small>TIEMPO SOBREVIVIDO</small><strong id="finalTime">0.0 s</strong></div>
+            <div class="final-score"><small>PUNTOS CONSEGUIDOS</small><strong id="finalScore">0</strong></div>
+            <div class="actions"><button id="restartBtn" class="primary" type="button">↻ REINTENTAR</button><button id="menuBtn" class="secondary" type="button">CAMBIAR PERSONAJE</button></div>
+          </div>
+        </div>
+        <nav class="touch-lanes" aria-label="Controles táctiles de carriles">
+          <button class="touch-lane touch-lane-up" type="button" data-lane="up" aria-label="Subir un carril"><span aria-hidden="true">▲</span><small>SUBIR</small></button>
+          <button class="touch-lane touch-lane-down" type="button" data-lane="down" aria-label="Bajar un carril"><span aria-hidden="true">▼</span><small>BAJAR</small></button>
+        </nav>
+        <div class="pause-badge hidden" id="pauseBadge">❚❚ PAUSA</div>
+      </div>
+
+      <section class="lives-bar" id="livesBar"></section>
+      <div class="controls-help"><span id="movementHelp"><kbd>↑</kbd><kbd>↓</kbd> mover</span><span>★ estrellas: disparo automático</span><span><kbd>P</kbd> pausa</span><span><kbd>F</kbd> pantalla completa</span></div>
+    </section>
+  </main>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

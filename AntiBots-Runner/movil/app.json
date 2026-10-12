@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "AntiBots Runner",
+    "slug": "antibots-runner",
+    "version": "1.0.0",
+    "icon": "./assets/antibots-runner-icon.png",
+    "orientation": "landscape",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.antibots.runner",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/antibots-runner-icon.png",
+        "backgroundColor": "#07040d"
+      }
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "04533153-1fd8-4f31-ba81-3f46db12576b"
+      }
+    }
+  }
+}
