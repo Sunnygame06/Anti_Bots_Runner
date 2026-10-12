@@ -19,14 +19,24 @@ const MUSIC={
   3:'phase-3.mp3'
 };
 let currentMusic=null;
+const effectPlayers=new Map();
+const unavailableEffects=new Set();
 const audioUrl = file => `${'/game/'}audio/${file}`;
 function make(src,loop=false,volume=.65){const a=new Audio(src);a.loop=loop;a.volume=volume;return a;}
 export const audio={
   play(name){
     const file=FILES[name]; if(!file)return;
-    const src=audioUrl(file);
-    const a=make(src,false,name==='roar'||name==='entry'||name==='phaseRoar'||name==='victory'?.8:.55);
-    a.play().catch(()=>{});
+    if(unavailableEffects.has(file)) return;
+    let a=effectPlayers.get(file);
+    if(!a){
+      const volume=name==='roar'||name==='entry'||name==='phaseRoar'||name==='victory'?.8:.55;
+      a=make(audioUrl(file),false,volume);
+      a.addEventListener('error',()=>unavailableEffects.add(file),{once:true});
+      effectPlayers.set(file,a);
+    }
+    if(a.error){ unavailableEffects.add(file); return; }
+    a.currentTime=0;
+    a.play().catch(()=>{ if(a.error) unavailableEffects.add(file); });
   },
   music(phase){
     this.stopMusic();

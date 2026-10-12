@@ -717,7 +717,11 @@ function update(dt){
   // Al llegar Elta el bosque nocturno se mezcla suavemente; al derrotarla vuelve la ciudad.
   const eltaPresent=state.enemyEvent?.type==='elta';
   state.worldTransition=lerp(state.worldTransition,eltaPresent?1:0,Math.min(1,dt*.72));
+  // La dificultad define la velocidad inicial. A partir de ahí se acelera
+  // exactamente una unidad por segundo, sin saltos por cada fotograma.
   state.speed = cfg().startSpeed + Math.floor(state.elapsed);
+
+  // El puntaje conserva su ritmo normal; solo la velocidad aumenta de uno en uno.
   state.score += dt * (55 + state.speed*.19);
   scoreEl.textContent = fmt(state.score);
 
@@ -952,12 +956,15 @@ const vignette=makeLayer(W,H,g=>{ const v=g.createRadialGradient(W/2,H/2,H*.4,W/
 function drawTile(img,offset){ const o=((offset%W)+W)%W; ctx.drawImage(img,-o,0); ctx.drawImage(img,W-o,0); }
 
 function drawBackground(){
-  const t=state.elapsed, sp=state.speed;
+  const t=state.elapsed;
+  // La distancia se acumula de forma continua en update(). No se usa t*speed,
+  // porque al subir la velocidad cada segundo eso provocaba un salto del fondo.
+  const distance=state.player?.distance || 0;
   const scene=state.enemyEvent?.type;
   if(scene==='tank') ctx.drawImage(tankApocalypseSky,0,0);
   else if(scene==='dragon') ctx.drawImage(redMountainSky,0,0);
   else {
-    ctx.drawImage(skyLayer,0,0); drawTile(mtFar,t*sp*.02); drawTile(mtNear,t*sp*.038); drawTile(city,t*sp*.085);
+    ctx.drawImage(skyLayer,0,0); drawTile(mtFar,distance*.02); drawTile(mtNear,distance*.038); drawTile(city,distance*.085);
     if(state.worldTransition>0){ ctx.save(); ctx.globalAlpha=state.worldTransition; ctx.drawImage(forestSky,0,0); ctx.restore(); }
   }
   // Una pista continua por escenario: evita las bandas oscuras que parecían un reflejo.
@@ -980,7 +987,7 @@ function drawBackground(){
     ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,top,W,5);
     ctx.fillStyle=theme.edge; ctx.globalAlpha=.38; ctx.fillRect(0,top+5,W,2); ctx.globalAlpha=1;
     ctx.fillStyle='rgba(0,0,0,.68)'; ctx.fillRect(0,bottom-7,W,7);
-    const drift=(t*sp*.18+i*23)%86;
+    const drift=(distance*.18+i*23)%86;
     ctx.fillStyle=theme.dash; ctx.globalAlpha=.33;
     for(let x=-drift;x<W;x+=86){ ctx.fillRect(x,cy+27,24,2); ctx.fillRect(x+8,cy+31,7,2); }
     ctx.globalAlpha=1;
