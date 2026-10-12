@@ -43,7 +43,6 @@
         <canvas id="game" width="1280" height="720" tabindex="0"></canvas>
         <div class="overlay hidden" id="startOverlay">
           <div class="overlay-panel start-panel">
-            <p class="kicker">ENDLESS RUNNER · 1 JUGADOR · 3 CARRILES</p>
             <h2>Escoge tu <span class="accent">personaje</span></h2>
             <p class="lead">La carrera no termina: esquiva obstáculos y recoge <strong>estrellas</strong> para lanzarlas automáticamente contra los enemigos. Elige cómo cambiar de carril y recoge corazones para recuperar vida.</p>
             <div class="difficulty-select" role="group" aria-label="Dificultad">
@@ -65,6 +64,7 @@
             </div>
             <div class="start-actions">
               <button id="startBtn" class="primary" type="button">▶ JUGAR</button>
+              <p class="keyboard-help"><kbd>P</kbd> Pausar <span aria-hidden="true">·</span> <kbd>F</kbd> Pantalla completa</p>
             </div>
           </div>
         </div>
@@ -77,6 +77,17 @@
             <div class="actions"><button id="restartBtn" class="primary" type="button">↻ REINTENTAR</button><button id="menuBtn" class="secondary" type="button">CAMBIAR PERSONAJE</button></div>
           </div>
         </div>
+        <div class="overlay hidden" id="pauseOverlay">
+          <div class="overlay-panel pause-panel">
+            <p class="kicker">PARTIDA EN PAUSA</p>
+            <h2>¿Qué deseas hacer?</h2>
+            <div class="pause-actions">
+              <button class="primary" type="button" data-pause-choice="continue">▶ SEGUIR JUGANDO</button>
+              <button class="secondary" type="button" data-pause-choice="restart">↻ REINICIAR</button>
+              <button class="secondary" type="button" data-pause-choice="character">CAMBIAR PERSONAJE</button>
+            </div>
+          </div>
+        </div>
         <nav class="touch-lanes" aria-label="Controles táctiles de carriles">
           <button class="touch-lane touch-lane-up" type="button" data-lane="up" aria-label="Subir un carril"><span aria-hidden="true">▲</span><small>SUBIR</small></button>
           <button class="touch-lane touch-lane-down" type="button" data-lane="down" aria-label="Bajar un carril"><span aria-hidden="true">▼</span><small>BAJAR</small></button>
@@ -85,7 +96,6 @@
       </div>
 
       <section class="lives-bar" id="livesBar"></section>
-      <div class="controls-help"><span id="movementHelp"><kbd>↑</kbd><kbd>↓</kbd> mover</span><span>★ estrellas: disparo automático</span><span><kbd>P</kbd> pausa</span><span><kbd>F</kbd> pantalla completa</span></div>
     </section>
   </main>
   <script type="module" src="./src/main.js"></script>

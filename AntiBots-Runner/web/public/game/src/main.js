@@ -14,6 +14,7 @@ const scoreEl = document.querySelector('#score');
 const highScoreEl = document.querySelector('#highScore');
 const startOverlay = document.querySelector('#startOverlay');
 const gameOverOverlay = document.querySelector('#gameOverOverlay');
+const pauseOverlay = document.querySelector('#pauseOverlay');
 const pauseBadge = document.querySelector('#pauseBadge');
 const finalTimeEl = document.querySelector('#finalTime');
 const finalScoreEl = document.querySelector('#finalScore');
@@ -35,9 +36,9 @@ const AVATAR = [['0%','0%'],['0%','28.571%'],['0%','57.143%'],['0%','85.714%']];
 const VAR_C = ['--p1','--p2','--p3','--p4'];
 
 const DIFFICULTY = {
-  easy:   { startSpeed:320, maxSpeed:600, speedPerSecond:1.2, obstacleRate:1.10, projectileSpeed:.85 },
-  medium: { startSpeed:350, maxSpeed:700, speedPerSecond:2.0, obstacleRate:1.00, projectileSpeed:1.00 },
-  hard:   { startSpeed:390, maxSpeed:900, speedPerSecond:2.8, obstacleRate:.90, projectileSpeed:1.20 }
+  easy:   { startSpeed:300, obstacleRate:1.10, projectileSpeed:.85 },
+  medium: { startSpeed:350, obstacleRate:1.00, projectileSpeed:1.00 },
+  hard:   { startSpeed:400, obstacleRate:.90, projectileSpeed:1.20 }
 };
 
 const ENEMY_HP = { tank: 2500, dragon: 1500, elta: 3000 };
@@ -156,9 +157,6 @@ function setMovementControls(value){
     button.classList.toggle('selected',selected);
     button.setAttribute('aria-pressed',String(selected));
   });
-  document.querySelector('#movementHelp').innerHTML = movementControls === 'ws'
-    ? '<kbd>W</kbd><kbd>S</kbd> mover'
-    : '<kbd>↑</kbd><kbd>↓</kbd> mover';
   if(state.player) renderLives();
 }
 
@@ -182,6 +180,7 @@ function resetGame(){
   });
   startOverlay.classList.add('hidden');
   gameOverOverlay.classList.add('hidden');
+  pauseOverlay.classList.add('hidden');
   pauseBadge.classList.add('hidden');
   scoreEl.textContent='00000';
   audio.stopAll();
@@ -238,7 +237,27 @@ function togglePause(){
   if(!state.running || state.over) return;
   state.paused=!state.paused;
   pauseBadge.classList.toggle('hidden',!state.paused);
+  pauseOverlay.classList.toggle('hidden',!state.paused);
   if(!state.paused){ state.lastTime=performance.now(); requestAnimationFrame(loop); }
+}
+function continueGame(){
+  if(!state.running || !state.paused) return;
+  state.paused=false;
+  pauseOverlay.classList.add('hidden');
+  pauseBadge.classList.add('hidden');
+  state.lastTime=performance.now();
+  requestAnimationFrame(loop);
+}
+function showCharacterMenu(){
+  state.running=false;
+  state.paused=false;
+  state.over=false;
+  pauseOverlay.classList.add('hidden');
+  pauseBadge.classList.add('hidden');
+  gameOverOverlay.classList.add('hidden');
+  startOverlay.classList.remove('hidden');
+  audio.stopAll();
+  drawPreview();
 }
 
 function handleAction(action){
@@ -248,6 +267,21 @@ function handleAction(action){
       break;
   }
 }
+document.querySelectorAll('[data-pause-choice]').forEach(button=>{
+  button.addEventListener('click',()=>{
+    switch(button.dataset.pauseChoice){
+      case 'continue':
+        continueGame();
+        break;
+      case 'restart':
+        resetGame();
+        break;
+      case 'character':
+        showCharacterMenu();
+        break;
+    }
+  });
+});
 
 function obstacleMetrics(kind){
   const phaseObstacle=PHASE_OBSTACLE_BY_KIND[kind];
@@ -683,7 +717,7 @@ function update(dt){
   // Al llegar Elta el bosque nocturno se mezcla suavemente; al derrotarla vuelve la ciudad.
   const eltaPresent=state.enemyEvent?.type==='elta';
   state.worldTransition=lerp(state.worldTransition,eltaPresent?1:0,Math.min(1,dt*.72));
-  state.speed = Math.min(cfg().maxSpeed,cfg().startSpeed + state.elapsed * cfg().speedPerSecond);
+  state.speed = cfg().startSpeed + Math.floor(state.elapsed);
   state.score += dt * (55 + state.speed*.19);
   scoreEl.textContent = fmt(state.score);
 
@@ -1414,11 +1448,7 @@ rosterCards.forEach((card,i)=>card.addEventListener('click',()=>setCharacter(i))
 difficultyButtons.forEach(b=>b.addEventListener('click',()=>setDifficulty(b.dataset.difficulty)));
 controlButtons.forEach(button=>button.addEventListener('click',()=>setMovementControls(button.dataset.control)));
 document.querySelector('#menuBtn').addEventListener('click',()=>{
-  gameOverOverlay.classList.add('hidden');
-  startOverlay.classList.remove('hidden');
-  state.running=false;
-  state.over=false;
-  drawPreview();
+  showCharacterMenu();
 });
 
 const fsTarget=document.querySelector('.game-card');

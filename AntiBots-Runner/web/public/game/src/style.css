@@ -65,7 +65,7 @@ h1{margin:4px 0 0;font:900 clamp(20px,3vw,30px)/1 var(--font-display);letter-spa
   font-variant-numeric:tabular-nums;text-shadow:0 0 14px rgba(255,45,85,.55)}
 .hud-stat.hi strong{color:var(--cyan);text-shadow:0 0 14px rgba(61,230,255,.5)}
 .pause-btn{
-  display:none;place-items:center;flex:none;width:40px;min-height:40px;padding:0;
+  display:grid;place-items:center;flex:none;width:40px;min-height:40px;padding:0;
   border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.08);
   color:#fff;font:900 16px var(--font-display);cursor:pointer;touch-action:manipulation
 }
@@ -113,6 +113,11 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;outline:none;touch
 .roster-card span{max-width:100%;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .roster-card small{display:flex;gap:4px;margin-top:2px}
 .roster-card.inactive{opacity:.32;filter:grayscale(1);transform:scale(.97)}
+.start-panel .lead{font-size:clamp(16px,1.8vw,19px)}
+.difficulty-btn{font-size:13px}
+.control-select>span{font-size:12px}
+.control-btn{font-size:14px}
+.keyboard-help{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:7px;margin:2px 0 0;color:var(--muted);font-size:15px;font-weight:700}
 kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:6px;
   border:1px solid rgba(255,255,255,.22);border-bottom-width:3px;background:rgba(255,255,255,.07);
   font:700 12px/1 var(--font-ui);color:#fff}
@@ -131,6 +136,10 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .pause-badge{position:absolute;top:18px;left:50%;transform:translateX(-50%);padding:9px 18px;border-radius:999px;
   border:1px solid rgba(255,255,255,.2);background:rgba(10,6,18,.85);backdrop-filter:blur(6px);
   font:800 12px/1 var(--font-display);letter-spacing:.24em;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.pause-panel{width:min(560px,100%)}
+.pause-panel h2{margin-bottom:20px}
+.pause-actions{display:grid;grid-template-columns:1fr;gap:10px}
+.pause-actions .secondary{margin:0}
 
 /* Barra de vidas */
 .lives-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px;background:#0a0612;border-top:1px solid var(--line)}
@@ -143,6 +152,7 @@ button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .life-meta{display:grid;gap:3px;min-width:0;flex:1}
 .life-meta strong{font:900 13px/1 var(--font-display);color:var(--c)}
 .life-meta small{font:700 11px/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.life-meta small{display:none}
 .hearts{display:flex;gap:3px;flex:none}
 .heart{width:18px;height:18px;transition:transform .2s}
 .heart.on{fill:#ff3357;filter:drop-shadow(0 0 5px rgba(255,51,87,.7))}
@@ -333,16 +343,17 @@ body.fs-active{overflow:hidden}
     display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;min-width:0
   }
   .difficulty-select>span,.control-select>span{grid-column:1/-1;margin:0;text-align:center}
-  .difficulty-btn,.control-btn{width:100%;min-width:0;padding:8px 4px;font-size:clamp(9px,3vw,12px);white-space:normal}
+  .difficulty-btn,.control-btn{width:100%;min-width:0;padding:8px 4px;font-size:clamp(11px,3vw,14px);white-space:normal}
   .roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
   .roster-card{min-width:0;padding-inline:5px}
   .roster-card b{max-width:100%;font-size:clamp(10px,3.6vw,14px);overflow-wrap:anywhere}
   .start-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;min-width:0}
-  .start-actions>*{
+  .start-actions>button{
     width:100%;min-width:0;max-width:100%;height:auto;min-height:44px;margin:0;
     padding:10px;line-height:1.25;font-size:clamp(10px,3.2vw,14px);
     letter-spacing:.08em;white-space:normal;overflow-wrap:anywhere
   }
+  .keyboard-help{font-size:16px}
   .gameover-panel{width:min(100%,480px)}
   .gameover-panel .actions{display:grid;grid-template-columns:1fr;gap:8px}
   .gameover-panel .actions>*{width:100%;min-width:0;margin:0;padding-inline:10px}
@@ -417,7 +428,7 @@ body.fs-active{overflow:hidden}
   }
   .start-panel>.kicker{grid-area:kicker}
   .start-panel>h2{grid-area:heading;margin:2px 0}
-  .start-panel>.lead{grid-area:lead;font-size:clamp(11px,1.7vw,14px);line-height:1.25}
+  .start-panel>.lead{grid-area:lead;font-size:clamp(15px,1.8vw,17px);line-height:1.3}
   .start-panel>.difficulty-select{grid-area:difficulty;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:0}
   .start-panel>.difficulty-select>span{grid-column:1/-1;margin:0}
   .start-panel>.control-select{grid-area:controls;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0}
@@ -428,7 +439,8 @@ body.fs-active{overflow:hidden}
   .start-panel .roster-card b{font-size:clamp(10px,1.5vw,13px)}
   .start-panel .roster-card span{font-size:11px}
   .start-panel>.start-actions{grid-area:actions;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;width:100%;margin:0}
-  .start-panel>.start-actions>*{width:100%;min-height:38px;height:auto;margin:0;padding:6px 10px;font-size:clamp(10px,1.5vw,13px);line-height:1.15;letter-spacing:.06em;white-space:normal}
+  .start-panel>.start-actions>button{width:100%;min-height:38px;height:auto;margin:0;padding:6px 10px;font-size:clamp(11px,1.6vw,14px);line-height:1.15;letter-spacing:.06em;white-space:normal}
+  .keyboard-help{font-size:clamp(13px,1.7vw,16px)}
   .gameover-panel{width:min(100%,480px)}
   .gameover-panel .actions{display:flex;gap:8px}
   .gameover-panel .actions>*{width:auto;min-height:40px;padding:6px 12px}
@@ -521,7 +533,7 @@ body.fs-active{overflow:hidden}
   }
   body.mobile-game-active .start-panel>.kicker{grid-area:kicker}
   body.mobile-game-active .start-panel>h2{grid-area:heading;margin:2px 0}
-  body.mobile-game-active .start-panel>.lead{grid-area:lead;font-size:clamp(11px,1.7cqw,14px);line-height:1.25}
+  body.mobile-game-active .start-panel>.lead{grid-area:lead;font-size:clamp(14px,1.8cqw,16px);line-height:1.3}
   body.mobile-game-active .start-panel>.difficulty-select{
     grid-area:difficulty;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:0
   }
@@ -536,10 +548,11 @@ body.fs-active{overflow:hidden}
   body.mobile-game-active .start-panel>.start-actions{
     grid-area:actions;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;width:100%;margin:0
   }
-  body.mobile-game-active .start-panel>.start-actions>*{
+  body.mobile-game-active .start-panel>.start-actions>button{
     width:100%;min-height:38px;height:auto;margin:0;padding:6px 10px;
-    font-size:clamp(10px,1.5cqw,13px);line-height:1.15;letter-spacing:.06em;white-space:normal
+    font-size:clamp(11px,1.6cqw,14px);line-height:1.15;letter-spacing:.06em;white-space:normal
   }
+  body.mobile-game-active .keyboard-help{font-size:clamp(13px,1.7cqw,16px)}
   body.mobile-game-active .start-panel>h2{font-size:clamp(20px,4cqw,36px)}
   body.mobile-game-active .start-panel>.kicker{font-size:clamp(8px,1.2cqw,11px)}
   body.mobile-game-active .difficulty-btn{font-size:clamp(10px,1.5cqw,13px)}
@@ -580,6 +593,14 @@ body.fs-active{overflow:hidden}
 .touch-lanes{display:none}
 @media (pointer:coarse){
   html,body{overscroll-behavior:none}
+  body.mobile-game-active .game-topbar{background:transparent;border:0}
+  body.mobile-game-active .game-topbar .brand{display:none}
+  body.mobile-game-active .hud{display:flex;flex-wrap:nowrap;gap:6px}
+  body.mobile-game-active .pause-btn{display:grid;flex:none;width:36px;min-height:34px}
+  body.mobile-game-active .lives-bar{display:flex;justify-content:flex-end;background:transparent;border:0}
+  body.mobile-game-active .lives-bar .life-card .avatar,
+  body.mobile-game-active .lives-bar .life-meta{display:none}
+  body.mobile-game-active .lives-bar .life-card{flex:none;min-height:0;padding:3px 8px}
   body.mobile-game-active .canvas-wrap #game,
   body.mobile-game-active .game-card.is-fs .canvas-wrap #game{
     width:min(100%, calc(100dvh * 16 / 9));
@@ -647,11 +668,11 @@ body.fs-active{overflow:hidden}
     background:transparent;border:0
   }
   body.mobile-game-active .game-topbar .brand,
-  body.mobile-game-active .game-topbar .pause-btn,
   body.mobile-game-active .game-topbar .fs-btn{
     display:none!important
   }
-  body.mobile-game-active .hud{justify-content:flex-end;gap:6px}
+  body.mobile-game-active .hud{display:flex;justify-content:flex-end;gap:6px}
+  body.mobile-game-active .pause-btn{display:grid}
   body.mobile-game-active .hud-stat{
     min-width:0;padding:4px 8px;border-color:rgba(255,255,255,.16);
     background:rgba(10,6,18,.72);text-align:right
