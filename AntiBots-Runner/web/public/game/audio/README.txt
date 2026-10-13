@@ -11,8 +11,8 @@ boss-shot.mp3       Cuando el dinosaurio dispara.
 phase-roar.mp3      Rugido al derrotar los jefes 1 y 2.
 boss-hit.mp3        Cuando un proyectil de jugador golpea al jefe.
 player-hit.mp3      Cuando un jugador recibe daño.
-powerup.mp3         Cuando una racha alcanza 15 s o 30 s y el jugador avanza.
-life.mp3            Cuando se recoge una vida.
+star-collect.wav    Cuando se recoge una estrella (brillo ascendente).
+heart-collect.wav   Cuando se recoge un corazón (tono cálido de recuperación).
 attack-collect.mp3  Cuando se recoge un objeto de ataque.
 player-shot.mp3     Cuando ese objeto sale disparado hacia el jefe.
 victory.mp3         Sonido al derrotar al tercer jefe.

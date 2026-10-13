@@ -194,7 +194,7 @@ function endGame(){
   if(state.over) return;
   state.over=true;
   state.running=false;
-  audio.stopMusic();
+  audio.stopAll();
   const final=Math.floor(state.score);
   if(final>hi){ hi=final; localStorage.setItem('antibots-runner-solo-hi',String(hi)); highScoreEl.textContent=fmt(hi); }
   const elapsedSeconds=Math.floor(state.elapsed);
@@ -224,7 +224,7 @@ function healPlayer(){
   if(!p?.alive || p.lives>=3) return;
   p.lives++;
   burstSparks(p.x,p.visualY-80,'#ff5577');
-  audio.play('collect');
+  audio.play('life');
   renderLives();
 }
 
@@ -238,13 +238,17 @@ function togglePause(){
   state.paused=!state.paused;
   pauseBadge.classList.toggle('hidden',!state.paused);
   pauseOverlay.classList.toggle('hidden',!state.paused);
-  if(!state.paused){ state.lastTime=performance.now(); requestAnimationFrame(loop); }
+  if(state.paused){ audio.pauseMusic(); audio.pauseRain(); audio.pauseLoops(); }
+  else { audio.resumeMusic(); audio.resumeRain(); audio.resumeLoops(); state.lastTime=performance.now(); requestAnimationFrame(loop); }
 }
 function continueGame(){
   if(!state.running || !state.paused) return;
   state.paused=false;
   pauseOverlay.classList.add('hidden');
   pauseBadge.classList.add('hidden');
+  audio.resumeMusic();
+  audio.resumeRain();
+  audio.resumeLoops();
   state.lastTime=performance.now();
   requestAnimationFrame(loop);
 }
@@ -428,6 +432,7 @@ function startEltaEncounter(){
     type:'elta', age:0, stormTimer:.9, bolts:[],
     elta:{ x:W-210, y:-260, enter:0, phase:1, frame:0, frameTimer:0, hp, maxHp:hp, recoil:0, aura:0 }
   };
+  audio.startRain();
   state.roadFlash=.65;
   // La fase de Elta arranca limpia: sus únicos obstáculos son rocas y troncos de tormenta.
   state.stars=[]; state.hearts=[]; state.obstacles=[];
@@ -446,6 +451,8 @@ function finishEnemyEncounter(){
   burstSparks(cx,cy,'#ffd85c');
   burstSparks(cx+25,cy+22,'#ff6b47');
   state.bursts.push({ x:cx, y:cy, r:22, life:.45, color:'#ff6b47' });
+  if(ev.type==='elta') audio.stopRain();
+  if(ev.type==='tank'){ audio.stopLoop('companion-a'); audio.stopLoop('companion-b'); }
   state.enemyEvent=null;
   state.nextEnemyAt = state.elapsed + BOSS_INTERVAL;
   state.roadFlash=.3;
@@ -482,7 +489,7 @@ function launchPlayerAttack(){
 function fireEnemyShot(x,lane,isDragon=false,speedMultiplier=1){
   const speed=(470+state.elapsed*1.7)*cfg().projectileSpeed*speedMultiplier;
   state.projectiles.push({ x, y:LANES[lane]-54, lane, vx:speed, life:3.6, frame:isDragon?4:2, passed:false, dragon:isDragon });
-  audio.play('bossShot');
+  audio.play(isDragon?'dragonShot':'tankShot');
 }
 
 function companionBox(c){
@@ -492,19 +499,26 @@ function companionBox(c){
 
 function spawnStormObstacle(phase){
   const kinds=['stormRock','stormLog'];
+  const spawnX=W+100;
+  // No se agrega un obstáculo que complete los tres carriles en la misma fila.
+  const lanesBlockedAhead=new Set(state.obstacles
+    .filter(o=>Math.abs(o.x-spawnX)<300)
+    .map(o=>o.lane));
+  if(lanesBlockedAhead.size>=2) return false;
   let count=1;
-  if(phase===1) count=Math.random()<.30?2:1;
-  else if(phase===2) count=Math.random()<.55?2:1;
-  else if(phase===3) count=Math.random()<.75?2:1;
-  else { const chance=Math.random(); count=chance<.30?3:chance<.85?2:1; }
+  if(phase===2) count=Math.random()<.25?2:1;
+  else if(phase===3) count=Math.random()<.45?2:1;
+  else if(phase===4) count=Math.random()<.60?2:1;
+  count=Math.min(count,2-lanesBlockedAhead.size);
   const used=[];
   for(let i=0;i<count;i++){
-    const lanes=[0,1,2].filter(l=>!used.includes(l));
+    const lanes=[0,1,2].filter(l=>!used.includes(l)&&!lanesBlockedAhead.has(l));
     if(!lanes.length) break;
     const lane=lanes[Math.floor(Math.random()*lanes.length)];
     used.push(lane);
-    state.obstacles.push({ lane, x:W+100+i*130, kind:kinds[Math.floor(Math.random()*kinds.length)], extra:110+phase*45, counted:false, hit:false, storm:true });
+    state.obstacles.push({ lane, x:spawnX+i*130, kind:kinds[Math.floor(Math.random()*kinds.length)], extra:110+phase*45, counted:false, hit:false, storm:true });
   }
+  return used.length>0;
 }
 
 function addLightningWarning(phase){
@@ -543,24 +557,21 @@ function updateEnemyEvent(dt){
     } else if(t.phase==='cooldown'){
       t.cooldown-=dt;
       if(t.cooldown<=0){
-        const pool=[0,1,2].filter(l=>l!==t.lane);
-        t.targetLane=pool[Math.floor(Math.random()*pool.length)] ?? t.lane;
-        t.aimLane = state.player?.lane ?? t.targetLane;
+        // El carril se decide una sola vez al empezar el ataque.
+        t.targetLane=state.player?.lane ?? t.lane;
+        t.aimLane=t.targetLane;
         t.phase='move';
       }
     } else if(t.phase==='move'){
-      t.aimLane = state.player?.lane ?? t.targetLane;
       if(Math.abs(t.y-LANES[t.aimLane])<8){
         t.phase='warning';
-        t.targetLane = t.aimLane;
         t.warning=.78;
         audio.play('charge');
       }
     } else if(t.phase==='warning'){
       t.warning-=dt;
-      t.aimLane = state.player?.lane ?? t.targetLane;
       if(t.warning<=0){
-        fireEnemyShot(t.x+160,t.aimLane,false,1.2);
+        fireEnemyShot(t.x+160,t.targetLane,false,1.2);
         t.recoil=.24;
         t.shotFlash=.14;
         t.phase='cooldown';
@@ -570,6 +581,7 @@ function updateEnemyEvent(dt){
 
     for(const c of ev.accomplices){
       if(ev.age < c.delay) continue;
+      audio.startLoop(`companion-${c.variant}`,'companionMove');
       c.x += c.vx*dt;
       c.frameTimer += dt;
       if(c.frameTimer>.12){ c.frame=(c.frame+0.7)%4; c.frameTimer=0; }
@@ -579,7 +591,7 @@ function updateEnemyEvent(dt){
         damagePlayer();
       }
       if(!c.counted && c.x>p.x+80){ c.counted=true; if(!c.hit) state.stats.accomplicesDodged++; }
-      if(c.x>W+180) resetCompanion(c);
+      if(c.x>W+180){ audio.stopLoop(`companion-${c.variant}`); resetCompanion(c); }
     }
   }
 
@@ -603,6 +615,7 @@ function updateEnemyEvent(dt){
         d.phase='warning';
         d.warning=.85;
         audio.play('charge');
+        audio.play('dragonRoar');
       }
     } else if(d.phase==='warning'){
       d.warning-=dt;
@@ -628,10 +641,10 @@ function updateEnemyEvent(dt){
     e.y=lerp(-260,ELTA_TOP_Y,easeIn)+(e.enter>=1?Math.sin(ev.age*2.2)*6:0);
     ev.stormTimer-=dt;
     // Eventos más espaciados: los obstáculos son más grandes, así que deben dar tiempo para esquivar.
-    const cadence=[2.05,1.68,1.30,.98][e.phase-1];
+    const cadence=[2.85,2.45,2.12,1.82][e.phase-1];
     if(ev.stormTimer<=0){
-      if(Math.random()<.58) addLightningWarning(e.phase); else spawnStormObstacle(e.phase);
-      ev.stormTimer=cadence+rand(.18,.45);
+      if(Math.random()<.504) spawnStormObstacle(e.phase); else addLightningWarning(e.phase);
+      ev.stormTimer=cadence+rand(.35,.70);
     }
     for(const bolt of ev.bolts){
       if(!bolt.fired && !bolt.locked){
@@ -652,7 +665,7 @@ function updateEnemyEvent(dt){
           const p=state.player;
           if(p?.alive && p.lane===bolt.lane) damagePlayer();
           burstSparks(PLAYER_X,LANES[bolt.lane]-45,'#ffe66d');
-          audio.play('bossShot');
+          audio.play('lightning');
         }
       } else {
         bolt.life-=dt;
@@ -742,7 +755,9 @@ function update(dt){
     if(shouldSpawn){ spawnObstacle(); }
     state.spawnTimer=0;
     const speedFactor=clamp((state.speed-cfg().startSpeed)/500,0,.42);
-    state.nextSpawn=Math.max(.38,(1.05-speedFactor)*cfg().obstacleRate)+rand(.05,.28);
+    // Durante la carrera normal aparecen un 10% más rápido; con enemigos se mantiene la cadencia propia del combate.
+    const runningMultiplier=state.enemyEvent ? 1:.9;
+    state.nextSpawn=Math.max(.38*runningMultiplier,((1.05-speedFactor)*cfg().obstacleRate+rand(.05,.28))*runningMultiplier);
   }
 
   for(const o of state.obstacles){
@@ -1465,6 +1480,7 @@ if(handheldQuery.matches) document.body.classList.add('mobile-game-active');
 function isFullscreen(){ return !!(document.fullscreenElement||document.webkitFullscreenElement) || fsTarget.classList.contains('pseudo-fs'); }
 function syncFullscreenUI(){ const on=isFullscreen(); fsTarget.classList.toggle('is-fs',on); document.body.classList.toggle('fs-active',on); if(fsBtn){ fsBtn.textContent=on?'✕ Salir':'⛶ Pantalla completa'; fsBtn.setAttribute('aria-pressed',String(on)); } }
 function startGame(){
+  audio.unlock();
   resetGame();
 }
 async function toggleFullscreen(){
